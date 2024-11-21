@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/LidoHon/LetsGO-snippetBox.git/internal/models"
+	"github.com/go-playground/form/v4"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 )
@@ -18,6 +19,7 @@ type application struct {
 	errorLog 		*log.Logger
 	snippets 		*models.SnippetModel
 	templateCache 	map[string]*template.Template
+	formDecoder 	*form.Decoder
 }
 
 func main() {
@@ -54,12 +56,15 @@ func main() {
 		errorLog.Fatal(err)
 	}
 
+
+	formDecoder := form.NewDecoder()
 	// Initialize application struct
 	app := &application{
 		errorLog: errorLog,
 		infoLog:  infoLog,
 		snippets: &models.SnippetModel{DB:db},
 		templateCache: templateCache,
+		formDecoder: formDecoder,
 	}
 
 	// Set up HTTP server
