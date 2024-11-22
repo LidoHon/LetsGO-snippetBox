@@ -1,14 +1,18 @@
 package main
 
 import (
+	"crypto/tls"
 	"database/sql"
 	"flag"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/LidoHon/LetsGO-snippetBox.git/internal/models"
+	"github.com/alexedwards/scs/mysqlstore"
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form/v4"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
@@ -20,6 +24,7 @@ type application struct {
 	snippets 		*models.SnippetModel
 	templateCache 	map[string]*template.Template
 	formDecoder 	*form.Decoder
+	sessionManager 	*scs.SessionManager
 }
 
 func main() {
@@ -58,6 +63,11 @@ func main() {
 
 
 	formDecoder := form.NewDecoder()
+
+	sessionManager := scs.New()
+	sessionManager.Store = mysqlstore.New(db)
+	sessionManager.Lifetime =12 * time.Hour
+
 	// Initialize application struct
 	app := &application{
 		errorLog: errorLog,
@@ -65,6 +75,7 @@ func main() {
 		snippets: &models.SnippetModel{DB:db},
 		templateCache: templateCache,
 		formDecoder: formDecoder,
+		sessionManager: sessionManager,
 	}
 
 	// Set up HTTP server
@@ -73,14 +84,46 @@ func main() {
 		port = "4000" 
 	}
 
+
+	// only elliptic curves with
+// assembly implementations are used.since the others are very cpu intensive
+	tlsConfig := &tls.Config{
+		CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
+		// can configure the minimum and maximum TLS versions as well if we know all computers in our user base support tls 1.2 or whatever the case is
+
+		// MinVersion: tls.VersionTLS12,
+		// MaxVersion: tls.VersionTLS12,
+
+
+			/* cipher suites are a set of algorithms that are used to encrypt and decrypt data in a secure way */
+
+		// we can also restrict cipher suites  for example 
+		// CipherSuites: []uint16{
+		// 	tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+		// 	tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+		// 	tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,
+		// 	tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
+		// 	tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+		// 	tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+		// 	},
+
+	
+	}
+
 	srv := &http.Server{
 		Addr:     ":" + port,
 		ErrorLog: errorLog,
 		Handler:  app.routes(),
+		TLSConfig: tlsConfig,
+		IdleTimeout: time.Minute,
+		ReadTimeout: 5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		// we can also limit maximum header length..but Go always adds an additional 4096 bytes
+		// MaxHeaderBytes: 524288,
 	}
 
 	infoLog.Print("Server is running on port ", port)
-	err = srv.ListenAndServe()
+	err = srv.ListenAndServeTLS("../../tls/cert.pem", "../../tls/key.pem")
 	errorLog.Fatal(err)
 }
 

@@ -2,13 +2,13 @@ package main
 
 import (
 	"bytes"
-	// "errors"
+	"errors"
 	"fmt"
 	"net/http"
 	"runtime/debug"
 	"time"
 
-	// "github.com/go-playground/form/v4"
+	"github.com/go-playground/form/v4"
 )
 
 
@@ -17,6 +17,7 @@ func (app *application) newTemplateData(r *http.Request) *templateData{
 	_ = r // This line tells the compiler that r is being used
 	return &templateData{
 		CurrentYear: time.Now().Year(),
+		Flash: app.sessionManager.PopString(r.Context(), "flash"),
 	}
 }
 func (app *application) render(w http.ResponseWriter, status int, page string, data *templateData){
@@ -57,20 +58,20 @@ func (app *application) notFound(w http.ResponseWriter){
 }
 
 
-// func (app *application) decodePostForm(r *http.Request, dst any) error {
-// 	err := r.ParseForm()
-// 	if err != nil {
-// 		return err
-// 	}
-// 	err = app.formDecoder.Decode(dst, r.PostForm)
-// 	if err != nil {
+func (app *application) decodePostForm(r *http.Request, dst any) error {
+	err := r.ParseForm()
+	if err != nil {
+		return err
+	}
+	err = app.formDecoder.Decode(dst, r.PostForm)
+	if err != nil {
 
-// 	var invalidDecoderError *form.InvalidDecoderError
-// 	if errors.As(err, &invalidDecoderError) {
-// 		panic(err)
-// 	}
+	var invalidDecoderError *form.InvalidDecoderError
+	if errors.As(err, &invalidDecoderError) {
+		panic(err)
+	}
 
-// 	return err
-// 	}
-// 	return nil
-// 	}
+	return err
+	}
+	return nil
+	}
