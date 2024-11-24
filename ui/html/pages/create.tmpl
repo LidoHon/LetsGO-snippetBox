@@ -1,31 +1,25 @@
-{{define "title"}}Create a New Snippet{{end}}
-{{define "main"}}
+{{define "title"}}Create a New Snippet{{end}} {{define "main"}}
 <form action="/snippet/create" method="POST">
+  <!-- Include the CSRF token -->
+  <input type="hidden" name="csrf_token" value="{{.CSRFToken}}" />
   <div>
-    <label>Title:</label>
-
-    {{with .Form.FieldErrors.title}}
+    <label>Title:</label>{{with .Form.FieldErrors.title}}
     <label class="error">{{.}}</label>
     {{end}}
-
     <input type="text" name="title" value="{{.Form.Title}}" />
   </div>
   <div>
     <label>Content:</label>
-
     {{with .Form.FieldErrors.content}}
     <label class="error">{{.}}</label>
     {{end}}
-
     <textarea name="content">{{.Form.Content}}</textarea>
   </div>
   <div>
     <label>Delete in:</label>
-
     {{with .Form.FieldErrors.expires}}
     <label class="error">{{.}}</label>
     {{end}}
- 
     <input
       type="radio"
       name="expires"
@@ -36,7 +30,6 @@
       365)}}checked{{end}}
     />
     One Year
-
     <input
       type="radio"
       name="expires"
