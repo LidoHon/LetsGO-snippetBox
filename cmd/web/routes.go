@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"github.com/LidoHon/LetsGO-snippetBox.git/ui"
 	"github.com/julienschmidt/httprouter"
 	"github.com/justinas/alice"
 )
@@ -17,9 +18,17 @@ func (app *application) routes() http.Handler{
 		app.notFound(w)
 	})
 
-	fileServer :=http.FileServer(http.Dir("../../ui/static/"))
+	// fileServer :=http.FileServer(http.Dir("../../ui/static/"))
+	//now that we are using the embeded system to serve our files we can use the code bellow
+	fileServer :=http.FileServer(http.FS(ui.Files))
 
-	router.Handler(http.MethodGet,"/static/*filepath", http.StripPrefix("/static", fileServer))
+	// router.Handler(http.MethodGet,"/static/*filepath", http.StripPrefix("/static", fileServer))
+
+	/*Our static files are contained in the "static" folder of the ui.File embedded filesystem. So, for example, our CSS stylesheet is located at "static/css/main.css". This means that we now longer need to strip the prefix from the request URL -- any requests that start with /static/ can
+	just be passed directly to the file server and the correspondingstatic
+	file will be served (so long as it exists).*/
+	
+	router.Handler(http.MethodGet,"/static/*filepath", fileServer)
 
 	// creating a new middleware specific to our dynamic application routes
 
