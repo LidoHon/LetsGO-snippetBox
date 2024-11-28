@@ -23,7 +23,7 @@ func (app *application) routes() http.Handler{
 
 	// creating a new middleware specific to our dynamic application routes
 
-	dynamic := alice.New(app.sessionManager.LoadAndSave, noSurf)
+	dynamic := alice.New(app.sessionManager.LoadAndSave, noSurf, app.authenticate)
 
 
 	router.Handler(http.MethodGet, "/", dynamic.ThenFunc(app.home))
