@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	// "runtime/debug"
 	"time"
 
 	"github.com/LidoHon/LetsGO-snippetBox.git/internal/models"
@@ -19,6 +20,7 @@ import (
 )
 
 type application struct {
+	debug			bool
 	infoLog  		*log.Logger
 	errorLog 		*log.Logger
 	snippets 		models.SnippetModelInterface
@@ -42,6 +44,7 @@ func main() {
 		log.Fatal("DB_URL is not set in the environment")
 	}
 
+	debug := flag.Bool("debug", false, "Enable debug mode")
 	// Define the DSN with the loaded DB_URL
 	dsn := flag.String("dsn", dbURL, "MySQL data source name")
 	flag.Parse()
@@ -71,6 +74,7 @@ func main() {
 
 	// Initialize application struct
 	app := &application{
+		debug: *debug,
 		errorLog: errorLog,
 		infoLog:  infoLog,
 		snippets: &models.SnippetModel{DB:db},
